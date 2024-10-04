@@ -37,16 +37,8 @@ configure:
 compile: $(sources) clean
 	env PROJECTS="$(PROJECTS)" ./scripts/transpile.sh
 
-# Rebuild, install, reconfigure local settings, restart shell, and listen to journalctl logs
-debug: depcheck compile install configure enable restart-shell listen
-
 depcheck:
-	@echo depcheck
-	@if ! command -v tsc >/dev/null; then \
-		echo \
-		echo 'You must install TypeScript >= 3.8 to transpile: (node-typescript on Debian systems)'; \
-		exit 1; \
-	fi
+	npm install
 
 enable:
 	gnome-extensions enable "pop-shell@system76.com"
@@ -57,7 +49,7 @@ disable:
 listen:
 	journalctl -o cat -n 0 -f "$$(which gnome-shell)" | grep -v warning
 
-local-install: depcheck compile install configure restart-shell enable
+local-install: depcheck compile install configure restart-shell
 
 install:
 	rm -rf $(INSTALLBASE)/$(INSTALLNAME)
