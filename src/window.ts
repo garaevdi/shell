@@ -12,6 +12,7 @@ import * as scheduler from './scheduler.js';
 import * as focus from './focus.js';
 
 import Gdk from 'gi://Gdk';
+import Clutter from 'gi://Clutter';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
@@ -747,10 +748,12 @@ function place_pointer_on(ext: Ext, win: Meta.Window) {
             y += 8;
     }
 
-    const display = Gdk.DisplayManager.get().get_default_display();
+    // It does exist, but I'm to lazy to add it to the bindings
+    // @ts-ignore
+    const seat = Clutter.get_default_backend().get_default_seat();
 
-    if (display) {
-        display.get_default_seat().get_pointer().warp(display.get_default_screen(), x, y);
+    if (seat) {
+        seat.warp_pointer(x, y)
     }
 }
 
