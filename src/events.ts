@@ -1,6 +1,9 @@
 import * as Window from './window.js';
 
 import type { Ext } from './extension.js';
+import type { Rectangular } from './mod.js';
+
+import Meta from 'gi://Meta';
 
 /** Type representing all possible events handled by the extension's system. */
 export type ExtEvent = GenericCallback | ManagedWindow | CreateWindow | GlobalEventTag;

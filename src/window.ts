@@ -8,6 +8,7 @@ import * as xprop from './xprop.js';
 import type { Entity } from './ecs.js';
 import type { Ext } from './extension.js';
 import type { Rectangle } from './rectangle.js';
+import type { Rectangular } from './mod.js';
 import * as scheduler from './scheduler.js';
 import * as focus from './focus.js';
 
@@ -104,7 +105,7 @@ export class ShellWindow {
         }
 
         if (this.may_decorate()) {
-            if (!window.is_client_decorated()) {
+            if (!window.decorated) {
                 if (ext.settings.show_title()) {
                     this.decoration_show(ext);
                 } else {
@@ -122,7 +123,7 @@ export class ShellWindow {
         this.restack();
         this.update_border_layout();
 
-        if (this.meta.get_compositor_private()?.get_stage()) this.on_style_changed();
+        if ((this.meta.get_compositor_private() as Meta.WindowActor).get_stage()) this.on_style_changed();
     }
 
     activate(move_mouse: boolean = true): void {
@@ -252,7 +253,7 @@ export class ShellWindow {
         if (!icon) {
             icon = new St.Icon({
                 icon_name: 'applications-other',
-                icon_type: St.IconType.FULLCOLOR,
+                is_symbolic: false,
                 icon_size: size,
             });
         }
@@ -353,7 +354,7 @@ export class ShellWindow {
         this.hide_border();
         const clone = Rect.Rectangle.from_meta(rect);
         const meta = this.meta;
-        const actor = meta.get_compositor_private();
+        const actor = meta.get_compositor_private() as Meta.WindowActor;
 
         if (actor) {
             meta.unmaximize(Meta.MaximizeFlags.HORIZONTAL);
@@ -522,7 +523,7 @@ export class ShellWindow {
             }
 
             const border = this.border;
-            const actor = this.meta.get_compositor_private();
+            const actor = this.meta.get_compositor_private() as Meta.WindowActor;
             const win_group = global.window_group;
 
             if (actor && border && win_group) {
@@ -549,7 +550,7 @@ export class ShellWindow {
                 // Honor transient windows
                 for (const window of this.ext.windows.values()) {
                     const parent = window.meta.get_transient_for();
-                    const window_actor = window.meta.get_compositor_private();
+                    const window_actor = window.meta.get_compositor_private() as Meta.WindowActor;
                     if (!parent || !window_actor) continue;
                     const parent_actor = parent.get_compositor_private();
                     if (!parent_actor && parent_actor !== actor) continue;
@@ -568,7 +569,7 @@ export class ShellWindow {
         let above_windows: Clutter.Actor[] = new Array();
 
         for (const actor of global.get_window_actors()) {
-            if (actor && actor.get_meta_window() && actor.get_meta_window().is_above()) above_windows.push(actor);
+            if (actor && actor.get_meta_window() && actor.get_meta_window()!.is_above()) above_windows.push(actor);
         }
 
         return above_windows;

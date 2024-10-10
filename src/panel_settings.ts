@@ -14,6 +14,7 @@ import {
 } from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import { Button } from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import GLib from 'gi://GLib';
+// @ts-ignore
 import { spawn } from 'resource:///org/gnome/shell/misc/util.js';
 import { get_current_path } from './paths.js';
 // import * as Settings from './settings.js';
@@ -30,7 +31,7 @@ export class Indicator {
     entry_gaps: any;
 
     constructor(ext: Ext) {
-        this.button = new Button(0.0, _('Pop Shell Settings'));
+        this.button = new Button(0.0, _!('Pop Shell Settings'));
 
         const path = get_current_path();
         ext.button = this.button;
@@ -58,17 +59,17 @@ export class Indicator {
 
         this.toggle_tiled = tiled(ext);
 
-        this.toggle_active = toggle(_('Show Active Hint'), ext.settings.active_hint(), (toggle) => {
+        this.toggle_active = toggle(_!('Show Active Hint'), ext.settings.active_hint(), (toggle) => {
             ext.settings.set_active_hint(toggle.state);
         });
 
-        this.entry_gaps = number_entry(_('Gaps'), ext.settings.gap_inner(), (value) => {
+        this.entry_gaps = number_entry(_!('Gaps'), ext.settings.gap_inner(), (value) => {
             ext.settings.set_gap_inner(value);
             ext.settings.set_gap_outer(value);
         });
 
         this.border_radius = number_entry(
-            _('Active Border Radius'),
+            _!('Active Border Radius'),
             {
                 value: ext.settings.active_hint_border_radius(),
                 min: 0,
@@ -111,7 +112,7 @@ function menu_separator(text: any): any {
 }
 
 function settings_button(menu: any): any {
-    let item = new PopupMenuItem(_('View All'));
+    let item = new PopupMenuItem(_!('View All'));
     item.connect('activate', () => {
         let path: string | null = GLib.find_program_in_path('pop-shell-shortcuts');
         if (path) {
@@ -182,9 +183,9 @@ function shortcuts(menu: any): any {
 
     layout_manager.set_row_spacing(12);
     layout_manager.set_column_spacing(30);
-    layout_manager.attach(create_label(_('Shortcuts')), 0, 0, 2, 1);
+    layout_manager.attach(create_label(_!('Shortcuts')), 0, 0, 2, 1);
 
-    let launcher_shortcut = _('Super + /');
+    let launcher_shortcut = _!('Super + /');
     // const cosmic_settings = Settings.settings_new_id(
     //   'org.gnome.shell.extensions.pop-cosmic'
     // );
@@ -195,9 +196,9 @@ function shortcuts(menu: any): any {
     // }
 
     [
-        [_('Launcher'), launcher_shortcut],
-        [_('Navigate Windows'), _('Super + Arrow Keys')],
-        [_('Toggle Tiling'), _('Super + Y')],
+        [_!('Launcher'), launcher_shortcut],
+        [_!('Navigate Windows'), _!('Super + Arrow Keys')],
+        [_!('Toggle Tiling'), _!('Super + Y')],
     ].forEach((section, idx) => {
         let key = create_label(section[0]);
         key.get_clutter_text().set_margin_left(12);
@@ -301,7 +302,7 @@ function parse_number(text: string): number {
 }
 
 function show_title(ext: Ext): any {
-    const t = toggle(_('Show Window Titles'), ext.settings.show_title(), (toggle: any) => {
+    const t = toggle(_!('Show Window Titles'), ext.settings.show_title(), (toggle: any) => {
         ext.settings.set_show_title(toggle.state);
     });
 
@@ -311,6 +312,7 @@ function show_title(ext: Ext): any {
 function toggle(desc: string, active: boolean, connect: (toggle: any) => void): any {
     let toggle = new PopupSwitchMenuItem(desc, active);
 
+    // @ts-ignore
     toggle.label.set_y_align(Clutter.ActorAlign.CENTER);
 
     toggle.connect('toggled', () => {
@@ -322,7 +324,7 @@ function toggle(desc: string, active: boolean, connect: (toggle: any) => void): 
 }
 
 function tiled(ext: Ext): any {
-    let t = toggle(_('Tile Windows'), null != ext.auto_tiler, () => ext.toggle_tiling());
+    let t = toggle(_!('Tile Windows'), null != ext.auto_tiler, () => ext.toggle_tiling());
     return t;
 }
 

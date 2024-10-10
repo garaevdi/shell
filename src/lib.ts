@@ -2,9 +2,11 @@ import * as log from './log.js';
 import * as rectangle from './rectangle.js';
 
 import type { Rectangle } from './rectangle.js';
+import type { Rectangular } from './mod.js';
 
 import Meta from 'gi://Meta';
 import St from 'gi://St';
+import Clutter from 'gi://Clutter';
 
 export interface SizeHint {
     minimum: [number, number];

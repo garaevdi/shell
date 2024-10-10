@@ -66,6 +66,7 @@ export class Keybindings {
         for (const name in keybindings) {
             wm.addKeybinding(
                 name,
+                // @ts-ignore
                 this.ext.settings.ext,
                 Meta.KeyBindingFlags.NONE,
                 Shell.ActionMode.NORMAL,

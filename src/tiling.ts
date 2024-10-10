@@ -13,10 +13,12 @@ import type { Entity } from './ecs.js';
 import type { Rectangle } from './rectangle.js';
 import type { Ext } from './extension.js';
 import type { NodeStack } from './node.js';
+import type { Rectangular } from './mod.js';
 import { AutoTiler } from './auto_tiler.js';
 import { Fork } from './fork.js';
 
 import Meta from 'gi://Meta';
+import Mtk from 'gi://Mtk';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 const { ShellWindow } = window;
 
@@ -932,13 +934,13 @@ function move_window_or_monitor(
     };
 }
 
-function tile_monitors(rect: Rectangle): Array<Rectangle> {
-    let total_size = (a: Rectangle, b: Rectangle): number => a.width * a.height - b.width * b.height;
+function tile_monitors(rect: Rectangle): Array<Mtk.Rectangle> {
+    let total_size = (a: Mtk.Rectangle, b: Mtk.Rectangle): number => a.width * a.height - b.width * b.height;
 
     let workspace = global.workspace_manager.get_active_workspace();
     return Main.layoutManager.monitors
-        .map((_monitor: Rectangle, i: number) => workspace.get_work_area_for_monitor(i))
-        .filter((monitor: Rectangle) => {
+        .map((_monitor: any, i: number) => workspace.get_work_area_for_monitor(i))
+        .filter((monitor: Mtk.Rectangle) => {
             return (
                 rect.x + rect.width > monitor.x &&
                 rect.y + rect.height > monitor.y &&

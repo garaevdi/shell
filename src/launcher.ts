@@ -16,6 +16,8 @@ import Gio from 'gi://Gio';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
 
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+
 const app_sys = Shell.AppSystem.get_default();
 
 const Clipboard = St.Clipboard.get_default();
@@ -23,7 +25,7 @@ const CLIPBOARD_TYPE = St.ClipboardType.CLIPBOARD;
 
 interface SearchOption {
     result: JsonIPC.SearchResult;
-    menu: St.Widget;
+    menu: PopupMenu.PopupMenuBase;
 }
 
 export class Launcher extends search.Search {
@@ -41,9 +43,12 @@ export class Launcher extends search.Search {
 
         this.ext = ext;
 
+        // @ts-ignore
         this.dialog.dialogLayout._dialog.y_align = Clutter.ActorAlign.START;
+        // @ts-ignore
         this.dialog.dialogLayout._dialog.x_align = Clutter.ActorAlign.START;
-        this.dialog.dialogLayout.y = 48;
+        // @ts-ignore
+        this.dialog.dialogLayout._dialog.y = -128;
 
         this.cancel = () => {
             ext.overlay.visible = false;
@@ -321,7 +326,7 @@ export class Launcher extends search.Search {
         const mon_area = ext.monitor_area(active_monitor);
         const mon_width = mon_area ? mon_area.width : mon_work_area.width;
 
-        super._open(global.get_current_time(), false);
+        super._open();
 
         if (!this.dialog.visible) {
             this.clear();

@@ -1,6 +1,7 @@
 import type { Entity } from './ecs.js';
 import type { Ext } from './extension.js';
 import type { ShellWindow } from './window.js';
+import type { SignalID, Rectangular } from './mod.js';
 
 import * as Ecs from './ecs.js';
 import * as a from './arena.js';
@@ -10,6 +11,7 @@ const Arena = a.Arena;
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
+import Meta from 'gi://Meta';
 
 const ACTIVE_TAB = 'pop-shell-tab pop-shell-tab-active';
 const INACTIVE_TAB = 'pop-shell-tab pop-shell-tab-inactive';
@@ -56,68 +58,72 @@ const ContainerButton = GObject.registerClass(
     },
 );
 
-interface TabButton extends St.Button {
-    set_title: (title: string) => void;
+class TabButtonClass extends St.Button {
+    constructor(window: ShellWindow) {
+        const icon = window.icon(window.ext, 24);
+        icon.set_x_align(Clutter.ActorAlign.START);
+
+        const label = new St.Label({
+            y_expand: true,
+            x_align: Clutter.ActorAlign.START,
+            y_align: Clutter.ActorAlign.CENTER,
+            style: 'padding-left: 8px',
+        });
+
+        label.text = window.title();
+
+        const container = new St.BoxLayout({
+            y_expand: true,
+            y_align: Clutter.ActorAlign.CENTER,
+        });
+
+        const close_button = new ContainerButton(
+            new St.Icon({
+                icon_name: 'window-close-symbolic',
+                icon_size: 24,
+                y_align: Clutter.ActorAlign.CENTER,
+            }),
+        );
+
+        close_button.connect('clicked', () => {
+            window.meta.delete(global.get_current_time());
+        });
+
+        close_button.set_x_align(Clutter.ActorAlign.END);
+        close_button.set_y_align(Clutter.ActorAlign.CENTER);
+
+        container.add_child(icon);
+        container.add_child(label);
+        container.add_child(close_button);
+
+        super({
+            child: container,
+            x_expand: true,
+            y_expand: true,
+            y_align: Clutter.ActorAlign.CENTER,
+        });
+
+        this.set_label_actor(label);
+    }
+
+    set_title(title: string): void {
+        const label = new St.Label({
+            y_expand: true,
+            x_align: Clutter.ActorAlign.START,
+            y_align: Clutter.ActorAlign.CENTER,
+            style: 'padding-left: 8px',
+        });
+
+        label.text = title;
+
+        this.set_label_actor(label);
+    }
 }
 
 const TabButton = GObject.registerClass(
     {
         Signals: { activate: {} },
-    },
-    class TabButton extends St.Button {
-        _init(window: ShellWindow) {
-            const icon = window.icon(window.ext, 24);
-            icon.set_x_align(Clutter.ActorAlign.START);
-
-            const label = new St.Label({
-                y_expand: true,
-                x_align: Clutter.ActorAlign.START,
-                y_align: Clutter.ActorAlign.CENTER,
-                style: 'padding-left: 8px',
-            });
-
-            label.text = window.title();
-
-            const container = new St.BoxLayout({
-                y_expand: true,
-                y_align: Clutter.ActorAlign.CENTER,
-            });
-
-            const close_button = new ContainerButton(
-                new St.Icon({
-                    icon_name: 'window-close-symbolic',
-                    icon_size: 24,
-                    y_align: Clutter.ActorAlign.CENTER,
-                }),
-            );
-
-            close_button.connect('clicked', () => {
-                window.meta.delete(global.get_current_time());
-            });
-
-            close_button.set_x_align(Clutter.ActorAlign.END);
-            close_button.set_y_align(Clutter.ActorAlign.CENTER);
-
-            container.add_child(icon);
-            container.add_child(label);
-            container.add_child(close_button);
-
-            super._init({
-                child: container,
-                x_expand: true,
-                y_expand: true,
-                y_align: Clutter.ActorAlign.CENTER,
-            });
-
-            this._title = label;
-        }
-
-        set_title(text: string) {
-            if (this._title) {
-                this._title.text = text;
-            }
-        }
-    },
+    }, TabButtonClass
 );
 
 export class Stack {
@@ -138,7 +144,7 @@ export class Stack {
 
     workspace: number;
 
-    buttons: a.Arena<TabButton> = new Arena();
+    buttons: a.Arena<TabButtonClass> = new Arena();
 
     tabs_height: number = TAB_HEIGHT;
 
@@ -230,7 +236,7 @@ export class Stack {
             let name;
 
             this.window_exec(id, component.entity, (window) => {
-                const actor = window.meta.get_compositor_private();
+                const actor = window.meta.get_compositor_private() as Meta.WindowActor;
 
                 if (Ecs.entity_eq(entity, component.entity)) {
                     this.active_id = id;
@@ -373,7 +379,7 @@ export class Stack {
         const window = this.ext.windows.get(c.entity);
         if (window) {
             for (const s of c.signals) window.meta.disconnect(s);
-            if (this.workspace === this.ext.active_workspace()) window.meta.get_compositor_private()?.show();
+            if (this.workspace === this.ext.active_workspace()) (window.meta.get_compositor_private() as Meta.WindowActor).show();
         }
 
         c.signals = [];
@@ -410,7 +416,7 @@ export class Stack {
             if (this.workspace === this.ext.active_workspace()) {
                 const win = this.ext.windows.get(c.entity);
                 if (win) {
-                    win.meta.get_compositor_private()?.show();
+                    (win.meta.get_compositor_private() as Meta.WindowActor).show();
                     win.stack = null;
                 }
             }
@@ -434,7 +440,7 @@ export class Stack {
             if (Ecs.entity_eq(this.ext.grab_op.entity, this.active)) {
                 if (this.widgets) {
                     const parent = this.widgets.tabs.get_parent();
-                    const actor = this.active_meta()?.get_compositor_private();
+                    const actor = this.active_meta()?.get_compositor_private() as Meta.WindowActor;
                     if (actor && parent) {
                         parent.set_child_below_sibling(this.widgets.tabs, actor);
                     }
@@ -523,7 +529,7 @@ export class Stack {
     replace(window: ShellWindow) {
         if (!this.widgets) return;
         const c = this.tabs[this.active_id],
-            actor = window.meta.get_compositor_private();
+            actor = window.meta.get_compositor_private() as Meta.WindowActor;
         if (c && actor) {
             this.tab_disconnect(c);
 
@@ -547,7 +553,7 @@ export class Stack {
         const window = this.ext.windows.get(this.active);
         if (!window) return;
 
-        const actor = window.meta.get_compositor_private();
+        const actor = window.meta.get_compositor_private() as Meta.WindowActor;
         if (!actor) {
             this.active_disconnect();
             return;
@@ -664,7 +670,7 @@ export class Stack {
         c.button_signal = widget.connect('clicked', () => {
             this.activate(entity);
             this.window_exec(comp, entity, (window) => {
-                const actor = window.meta.get_compositor_private();
+                const actor = window.meta.get_compositor_private() as Meta.WindowActor;
                 if (actor) {
                     actor.show();
                     window.activate(false);

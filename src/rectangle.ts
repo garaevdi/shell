@@ -1,3 +1,5 @@
+import type { Rectangular } from "./mod.js";
+
 export class Rectangle {
     array: [number, number, number, number];
 

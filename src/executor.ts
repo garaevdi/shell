@@ -1,4 +1,7 @@
 import * as Ecs from './ecs.js';
+
+import type { SignalID } from './mod.js';
+
 import GLib from 'gi://GLib';
 
 export interface Executor<T> {

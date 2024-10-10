@@ -1,4 +1,7 @@
 import type { Ext } from './extension.js';
+import type { Rectangular } from './mod.js';
+
+import Meta from 'gi://Meta';
 
 export enum Side {
     LEFT,

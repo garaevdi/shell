@@ -12,6 +12,7 @@ import type { Entity } from './ecs.js';
 import type { Rectangle } from './rectangle.js';
 import type { ShellWindow } from './window.js';
 import type { Ext } from './extension.js';
+import type { Rectangular } from './mod.js';
 import { Stack } from './stack.js';
 
 const { Arena } = arena;

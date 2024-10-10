@@ -1,6 +1,7 @@
 import * as result from './result.js';
 import * as error from './error.js';
 import * as log from './log.js';
+import type { SignalID } from './mod.js';
 
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';

@@ -1,3 +1,5 @@
+import type { Rectangular } from "./mod.js";
+
 export enum Movement {
     NONE = 0,
     MOVED = 0b1,

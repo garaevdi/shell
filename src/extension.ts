@@ -30,6 +30,7 @@ import type { ExtEvent } from './events.js';
 import { Rectangle } from './rectangle.js';
 import type { Indicator } from './panel_settings.js';
 import type { Launcher } from './launcher.js';
+import type { SignalID, Rectangular } from './mod.js';
 
 import { Fork } from './fork.js';
 
@@ -43,6 +44,9 @@ import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 import St from 'gi://St';
 import Meta from 'gi://Meta';
+import Clutter from 'gi://Clutter';
+import GObject from 'gi://GObject';
+import Mtk from 'gi://Mtk';
 const { GlobalEvent, WindowEvent } = Events;
 const { cursor_rect, is_keyboard_op, is_resize_op, is_move_op } = Lib;
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
@@ -56,7 +60,9 @@ const {
     sessionMode,
     windowAttentionHandler,
 } = Main;
+// @ts-ignore
 import { ScreenShield } from 'resource:///org/gnome/shell/ui/screenShield.js';
+// @ts-ignore
 import { WorkspaceThumbnail } from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
 import { PACKAGE_VERSION } from 'resource:///org/gnome/shell/misc/config.js';
 import * as Tags from './tags.js';
@@ -134,7 +140,7 @@ export class Ext extends Ecs.System<ExtEvent> {
     displays: [number, Map<number, Display>] = [global.display.get_primary_monitor(), new Map()];
 
     /** The current scaling factor in GNOME Shell */
-    dpi: number = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+    dpi: number = St.ThemeContext.get_for_stage(global.stage as Clutter.Stage).scale_factor;
 
     drag_signal: null | SignalID = null;
 
@@ -308,7 +314,7 @@ export class Ext extends Ecs.System<ExtEvent> {
                     let movement = this.movements.remove(window.entity);
                     if (!movement) return;
 
-                    let actor = window.meta.get_compositor_private();
+                    let actor = window.meta.get_compositor_private() as Meta.WindowActor;
                     if (!actor) {
                         this.auto_tiler?.detach_window(this, window.entity);
                         return;
@@ -379,7 +385,7 @@ export class Ext extends Ecs.System<ExtEvent> {
 
             /** Window Create Event */
             case 3:
-                let actor = event.window.get_compositor_private();
+                let actor = event.window.get_compositor_private() as Meta.WindowActor;
                 if (!actor) return;
 
                 this.on_window_create(event.window, actor);
@@ -1286,7 +1292,7 @@ export class Ext extends Ecs.System<ExtEvent> {
         /** Move a window between workspaces */
         const workspace_move = (direction: Meta.MotionDirection) => {
             const ws = win.meta.get_workspace();
-            let neighbor = ws.get_neighbor(direction);
+            let neighbor: Meta.Workspace | null = ws.get_neighbor(direction);
 
             const last_window = (): boolean => {
                 const last = wom.get_n_workspaces() - 2 === ws.index() && ws.n_windows === 1;
@@ -1541,7 +1547,7 @@ export class Ext extends Ecs.System<ExtEvent> {
     on_maximize(win: Window.ShellWindow) {
         if (win.is_maximized()) {
             // Raise maximized to top so stacks won't appear over them.
-            const actor = win.meta.get_compositor_private();
+            const actor = win.meta.get_compositor_private() as Meta.WindowActor;
             if (actor) global.window_group.set_child_above_sibling(actor, null);
 
             this.on_monitor_changed(win, (_cfrom, cto, workspace) => {
@@ -1662,7 +1668,7 @@ export class Ext extends Ecs.System<ExtEvent> {
         }
 
         for (const window of this.windows.values()) {
-            if (window.meta.is_client_decorated()) continue;
+            if (window.meta.decorated) continue;
 
             if (show_title) {
                 window.decoration_show(this);
@@ -2071,7 +2077,7 @@ export class Ext extends Ecs.System<ExtEvent> {
             this.prev_focused = [null, null];
         });
 
-        St.ThemeContext.get_for_stage(global.stage).connect('notify::scale-factor', () => this.update_scale());
+        St.ThemeContext.get_for_stage(global.stage as Clutter.Stage).connect('notify::scale-factor', () => this.update_scale());
 
         // Modes
 
@@ -2501,7 +2507,7 @@ export class Ext extends Ecs.System<ExtEvent> {
     }
 
     update_scale() {
-        const new_dpi = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+        const new_dpi = St.ThemeContext.get_for_stage(global.stage as Clutter.Stage).scale_factor;
         const diff = new_dpi / this.dpi;
         this.dpi = new_dpi;
 
@@ -2608,7 +2614,7 @@ export class Ext extends Ecs.System<ExtEvent> {
 
     cursor_status(): [Rectangle, number] {
         const cursor = cursor_rect();
-        const rect = new Meta.Rectangle({ x: cursor.x, y: cursor.y, width: 1, height: 1 });
+        const rect = new Mtk.Rectangle({ x: cursor.x, y: cursor.y, width: 1, height: 1 });
         const monitor = display.get_monitor_index_for_rect(rect);
         return [cursor, monitor];
     }
@@ -2750,7 +2756,7 @@ function stylesheet_path(name: string) {
 function load_theme(style: Style): string | any {
     let pop_stylesheet = Number(style);
     try {
-        const theme_context = St.ThemeContext.get_for_stage(global.stage);
+        const theme_context = St.ThemeContext.get_for_stage(global.stage as Clutter.Stage);
 
         const existing_theme: null | any = theme_context.get_theme();
 

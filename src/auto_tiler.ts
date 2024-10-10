@@ -14,6 +14,9 @@ import type { Fork } from './fork.js';
 import type { Rectangle } from './rectangle.js';
 import type { Result } from './result.js';
 import type { ShellWindow } from './window.js';
+import type { Rectangular } from './mod.js';
+
+import Meta from 'gi://Meta';
 
 const { Stack } = stack;
 const { Ok, Err, ERR } = result;
@@ -87,8 +90,8 @@ export class AutoTiler {
         a_win.stack = b_stack;
         b_win.stack = a_stack;
 
-        a_win.meta.get_compositor_private()?.show();
-        b_win.meta.get_compositor_private()?.show();
+        (a_win.meta.get_compositor_private() as Meta.WindowActor).show();
+        (b_win.meta.get_compositor_private() as Meta.WindowActor).show();
 
         this.tile(ext, a_fork, a_fork.area);
         this.tile(ext, b_fork, b_fork.area);

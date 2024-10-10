@@ -1,6 +1,8 @@
 // const Me = imports.misc.extensionUtils.getCurrentExtension();
 import Gio from 'gi://Gio';
 import Gdk from 'gi://Gdk';
+import GObject from 'gi://GObject';
+
 import { get_current_path } from './paths.js';
 
 const DARK = ['dark', 'adapta', 'plata', 'dracula'];
@@ -35,10 +37,10 @@ function settings_new_schema(schema: string): Settings {
     const schemaDir = Gio.File.new_for_path(get_current_path()).get_child('schemas');
 
     let schemaSource = schemaDir.query_exists(null)
-        ? GioSSS.new_from_directory(schemaDir.get_path(), GioSSS.get_default(), false)
+        ? GioSSS.new_from_directory(schemaDir.get_path()!, GioSSS.get_default(), false)
         : GioSSS.get_default();
 
-    const schemaObj = schemaSource.lookup(schema, true);
+    const schemaObj = schemaSource!.lookup(schema, true);
 
     if (!schemaObj) {
         throw new Error(

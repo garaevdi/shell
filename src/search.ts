@@ -15,12 +15,13 @@ import { ModalDialog } from 'resource:///org/gnome/shell/ui/modalDialog.js';
 import * as Util from 'resource:///org/gnome/shell/misc/util.js';
 
 const { overview, wm } = Main;
+// @ts-ignore
 import { Overview } from 'resource:///org/gnome/shell/ui/overview.js';
 
 let overview_toggle: any = null;
 
 export class Search {
-    dialog: Shell.ModalDialog = new ModalDialog({
+    dialog: ModalDialog = new ModalDialog({
         styleClass: 'pop-shell-search modal-dialog',
         destroyOnClose: false,
         shellReactive: true,
@@ -60,8 +61,9 @@ export class Search {
 
         this.entry.set_hint_text("  Type to search apps, or type '?' for more options.");
 
-        this.text = this.entry.get_clutter_text();
+        this.text = this.entry.get_clutter_text() as Clutter.Text;
         (this.text as any).set_use_markup(true);
+        // @ts-ignore
         this.dialog.setInitialKeyFocus(this.text);
 
         let text_changed: null | number = null;
@@ -222,7 +224,7 @@ export class Search {
         this.dialog.contentLayout.width = Math.max(Lib.current_monitor().width / 4, 640);
 
         this.dialog.connect('event', (_actor: any, event: any) => {
-            const { width, height } = this.dialog.dialogLayout._dialog;
+            const { width, height } = this.dialog.dialogLayout;
             const { x, y } = this.dialog.dialogLayout;
             const area = new rect.Rectangle([x, y, width, height]);
 
@@ -271,14 +273,14 @@ export class Search {
         this.reset();
         this.remove_injections();
 
-        this.dialog.close(global.get_current_time());
+        this.dialog.close();
 
         wm.allowKeybinding('overlay-key', Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW);
     }
 
-    _open(timestamp: number, on_primary: boolean) {
+    _open() {
         this.grab_handle = Main.pushModal(this.dialog.dialogLayout);
-        this.dialog.open(timestamp, on_primary);
+        this.dialog.open();
 
         wm.allowKeybinding('overlay-key', Shell.ActionMode.ALL);
 
@@ -314,7 +316,7 @@ export class Search {
     }
 
     show() {
-        this.dialog.show_all();
+        this.dialog.show();
         this.clear();
         this.entry.grab_key_focus();
     }
@@ -325,6 +327,7 @@ export class Search {
             widget.add_style_pseudo_class('select');
 
             try {
+                // @ts-ignore
                 Util.ensureActorVisibleInScrollView(this.scroller, widget);
             } catch (_error) {}
         }
