@@ -42,7 +42,6 @@ const Movement = movement.Movement;
 import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 import St from 'gi://St';
-import Shell from 'gi://Shell';
 import Meta from 'gi://Meta';
 const { GlobalEvent, WindowEvent } = Events;
 const { cursor_rect, is_keyboard_op, is_resize_op, is_move_op } = Lib;
@@ -58,15 +57,7 @@ const {
     windowAttentionHandler,
 } = Main;
 import { ScreenShield } from 'resource:///org/gnome/shell/ui/screenShield.js';
-import {
-    // AppSwitcher,
-    // AppIcon,
-    WindowSwitcherPopup,
-} from 'resource:///org/gnome/shell/ui/altTab.js';
-// import { SwitcherList } from 'resource:///org/gnome/shell/ui/switcherPopup.js';
-import { Workspace } from 'resource:///org/gnome/shell/ui/workspace.js';
 import { WorkspaceThumbnail } from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
-import { WindowPreview } from 'resource:///org/gnome/shell/ui/windowPreview.js';
 import { PACKAGE_VERSION } from 'resource:///org/gnome/shell/misc/config.js';
 import * as Tags from './tags.js';
 import { get_current_path } from './paths.js';
@@ -1917,12 +1908,6 @@ export class Ext extends Ecs.System<ExtEvent> {
                     this.on_smart_gap();
                     this.show_border_on_focused();
                     break;
-                case 'show-skip-taskbar':
-                    if (this.settings.show_skiptaskbar()) {
-                        _show_skip_taskbar_windows(this);
-                    } else {
-                        _hide_skip_taskbar_windows();
-                    }
             }
         });
 
@@ -2681,12 +2666,6 @@ export default class PopShellExtension extends Extension {
             });
         }
 
-        if (ext.settings.show_skiptaskbar()) {
-            _show_skip_taskbar_windows(ext);
-        } else {
-            _hide_skip_taskbar_windows();
-        }
-
         if (ext.was_locked) {
             ext.was_locked = false;
             return;
@@ -2735,8 +2714,6 @@ export default class PopShellExtension extends Extension {
                 ext.auto_tiler.destroy(ext);
                 ext.auto_tiler = null;
             }
-
-            _hide_skip_taskbar_windows();
         }
 
         if (indicator) {
@@ -2814,240 +2791,4 @@ function* iter_workspaces(manager: any): IterableIterator<[number, any]> {
         idx += 1;
         ws = manager.get_workspace_by_index(idx);
     }
-}
-
-let default_isoverviewwindow_ws: any;
-let default_isoverviewwindow_ws_thumbnail: any;
-let default_init_appswitcher: any;
-let default_getwindowlist_windowswitcher: any;
-let default_getcaption_windowpreview: any;
-let default_getcaption_workspace: any;
-
-/**
- * Decorates the default gnome-shell workspace/overview handling
- * of skip_task_bar. And have those window types included in pop-shell.
- * Should only be called on extension#enable()
- *
- * NOTE to future maintainer:
- * Skip taskbar has been left out by upstream for a reason. And the
- * Shell.WindowTracker seems to skip handling skip taskbar windows, so they are
- * null or undefined. GNOME 40+ and lower version checking should be done to
- * constantly support having them within pop-shell.
- *
- * Known skip taskbars ddterm, conky, guake, minimized to tray apps, etc.
- *
- * While minimize to tray are the target for this feature,
- * skip taskbars that float/and avail workspace all
- * need to added to config.ts as default floating
- *
- */
-function _show_skip_taskbar_windows(ext: Ext) {
-    // Handle the overview
-    if (!default_isoverviewwindow_ws) {
-        default_isoverviewwindow_ws = Workspace.prototype._isOverviewWindow;
-        Workspace.prototype._isOverviewWindow = function (win: any) {
-            let meta_win = win;
-            if (GNOME_VERSION?.startsWith('3.36')) meta_win = win.get_meta_window();
-            return is_valid_minimize_to_tray(meta_win, ext) || default_isoverviewwindow_ws(win);
-        };
-    }
-
-    // Handle _getCaption errors
-    if (GNOME_VERSION?.startsWith('3.36')) {
-        // imports.ui.windowPreview is not in 3.36,
-        // _getCaption() is still in workspace.js
-        if (!default_getcaption_workspace) {
-            default_getcaption_workspace = Workspace.prototype._getCaption;
-            // 3.36 _getCaption
-            Workspace.prototype._getCaption = function () {
-                let metaWindow = this._windowClone.metaWindow;
-                if (metaWindow.title) return metaWindow.title;
-
-                let tracker = Shell.WindowTracker.get_default();
-                let app = tracker.get_window_app(metaWindow);
-                return app ? app.get_name() : '';
-            };
-        }
-    } else {
-        if (!default_getcaption_windowpreview) {
-            default_getcaption_windowpreview = WindowPreview.prototype._getCaption;
-            log.debug(`override workspace._getCaption`);
-            // 3.38 _getCaption
-            WindowPreview.prototype._getCaption = function () {
-                if (this.metaWindow.title) return this.metaWindow.title;
-
-                let tracker = Shell.WindowTracker.get_default();
-                let app = tracker.get_window_app(this.metaWindow);
-                return app ? app.get_name() : '';
-            };
-        }
-    }
-
-    // Handle the workspace thumbnail
-    if (!default_isoverviewwindow_ws_thumbnail) {
-        default_isoverviewwindow_ws_thumbnail = WorkspaceThumbnail.prototype._isOverviewWindow;
-        WorkspaceThumbnail.prototype._isOverviewWindow = function (win: any) {
-            let meta_win = win.get_meta_window();
-            return is_valid_minimize_to_tray(meta_win, ext) || default_isoverviewwindow_ws_thumbnail(win);
-        };
-    }
-
-    // let cfg = ext.conf;
-
-    // Handle switch-applications
-    // if (!default_init_appswitcher) {
-    //   default_init_appswitcher = AppSwitcher.prototype._init;
-    //   // Do not use the Shell.AppSystem apps
-    //   AppSwitcher.prototype._init = function (_apps: any, altTabPopup: any) {
-    //     // Simulate super._init(true);
-    //     SwitcherList.prototype._init.call(this, true);
-    //     this.icons = [];
-    //     this._arrows = [];
-
-    //     let windowTracker = Shell.WindowTracker.get_default();
-    //     let settings = new Gio.Settings({ schema_id: 'org.gnome.shell.app-switcher' });
-
-    //     let workspace = null;
-    //     if (settings.get_boolean('current-workspace-only')) {
-    //       let workspaceManager = global.workspace_manager;
-    //       workspace = workspaceManager.get_active_workspace();
-    //     }
-
-    //     let allWindows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, workspace);
-    //     // Remove duplicate app names after including skip task bar windows too
-    //     // E.g. Extensions instance plus when opening an extensions prefs window
-    //     // Or Android windows when alt-tabbing (depends on where switch apps is bound)
-    //     let allWindowsWithSkipTaskBar = allWindows.filter((w, i, a) => {
-    //       let app: any = windowTracker.get_window_app(w);
-    //       return (
-    //         i ===
-    //         a.findIndex(wi => {
-    //           let w_app: any = windowTracker.get_window_app(wi);
-    //           return app && w_app ? app.get_name() === w_app.get_name() : false;
-    //         })
-    //       );
-    //     });
-
-    //     // This block collects the windows associated to an app icon
-    //     for (let i = 0; i < allWindowsWithSkipTaskBar.length; i++) {
-    //       let meta_win = allWindowsWithSkipTaskBar[i];
-    //       let show_skiptb = !cfg.skiptaskbar_shall_hide(meta_win);
-    //       if (meta_win.is_skip_taskbar() && !show_skiptb) continue;
-    //       let appIcon = new AppIcon(windowTracker.get_window_app(meta_win));
-    //       appIcon.cachedWindows = allWindows.filter(
-    //         w => windowTracker.get_window_app(w) === appIcon.app
-    //       );
-    //       if (appIcon.cachedWindows.length > 0) this._addIcon(appIcon);
-    //     }
-
-    //     this._curApp = -1;
-    //     this._altTabPopup = altTabPopup;
-    //     this._mouseTimeOutId = 0;
-
-    //     this.connect('destroy', this._onDestroy.bind(this));
-    //   };
-    // }
-
-    // Handle switch-windows
-    if (!default_getwindowlist_windowswitcher) {
-        default_getwindowlist_windowswitcher = WindowSwitcherPopup.prototype._getWindowList;
-        WindowSwitcherPopup.prototype._getWindowList = function () {
-            let workspace = null;
-
-            if (this._settings.get_boolean('current-workspace-only')) {
-                let workspaceManager = global.workspace_manager;
-                workspace = workspaceManager.get_active_workspace();
-            }
-
-            let windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, workspace);
-            return windows
-                .map((w) => {
-                    let meta_win = w.is_attached_dialog() ? w.get_transient_for() : w;
-                    if (meta_win) {
-                        if (!meta_win.skip_taskbar || is_valid_minimize_to_tray(meta_win, ext)) {
-                            return meta_win;
-                        }
-                    }
-                    return null;
-                })
-                .filter((w, i, a) => w != null && a.indexOf(w) == i);
-        };
-    }
-}
-
-/**
- * This is the cleanup/restore of the decorator for skip_taskbar when pop-shell
- * is disabled.
- * Should only be called on extension#disable()
- *
- * Default functions should be checked if they exist,
- * especially when skip taskbar setting was left on during an update
- *
- */
-function _hide_skip_taskbar_windows() {
-    if (default_isoverviewwindow_ws) {
-        Workspace.prototype._isOverviewWindow = default_isoverviewwindow_ws;
-        default_isoverviewwindow_ws = null;
-    }
-
-    if (GNOME_VERSION?.startsWith('3.36')) {
-        if (default_getcaption_workspace) {
-            Workspace.prototype._getCaption = default_getcaption_workspace;
-            default_getcaption_workspace = null;
-        }
-    } else {
-        if (default_getcaption_windowpreview) {
-            WindowPreview.prototype._getCaption = default_getcaption_windowpreview;
-            default_getcaption_windowpreview = null;
-        }
-    }
-
-    if (default_isoverviewwindow_ws_thumbnail) {
-        WorkspaceThumbnail.prototype._isOverviewWindow = default_isoverviewwindow_ws_thumbnail;
-        default_isoverviewwindow_ws_thumbnail = null;
-    }
-
-    if (default_init_appswitcher) {
-        // AppSwitcher.prototype._init = default_init_appswitcher;
-        default_init_appswitcher = null;
-    }
-
-    if (default_getwindowlist_windowswitcher) {
-        WindowSwitcherPopup.prototype._getWindowList = default_getwindowlist_windowswitcher;
-        default_getwindowlist_windowswitcher = null;
-    }
-}
-
-/**
- * Moved skip task bar checking on this function/method
- * Synchronized with ShellTracker type checks and watch out for attached dialogs
- *
- * Thanks to Bananaman and upstream gnome-shell devs for the information
- *
- * https://github.com/pop-os/shell/issues/1251
- */
-function is_valid_minimize_to_tray(meta_win: Meta.Window, ext: Ext) {
-    let cfg = ext.conf;
-    let valid_min_to_tray = false;
-    switch (meta_win.window_type) {
-        case Meta.WindowType.NORMAL:
-        case Meta.WindowType.UTILITY: // Gimp (Non-Single Window Mode)
-            // Don't track OR (override redirect)-windows since those are never
-            // allowed to be window managed:
-            valid_min_to_tray = !meta_win.is_override_redirect();
-            break;
-    }
-
-    let gnome_shell_wm_class = meta_win.get_wm_class() === 'Gjs' || meta_win.get_wm_class() === 'Gnome-shell';
-    let show_skiptb = !cfg.skiptaskbar_shall_hide(meta_win);
-
-    valid_min_to_tray =
-        valid_min_to_tray &&
-        !meta_win.is_attached_dialog() &&
-        show_skiptb &&
-        meta_win.skip_taskbar &&
-        meta_win.get_wm_class() !== null &&
-        !gnome_shell_wm_class;
-
-    return valid_min_to_tray;
 }

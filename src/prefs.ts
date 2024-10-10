@@ -83,12 +83,6 @@ function settings_dialog_new(): Gtk.Container {
         ext.set_log_level(active_id);
     });
 
-    app.show_skip_taskbar.set_active(ext.show_skiptaskbar());
-    app.show_skip_taskbar.connect('state-set', (_widget: any, state: boolean) => {
-        ext.set_show_skiptaskbar(state);
-        Settings.sync();
-    });
-
     app.mouse_cursor_follows_active_window.set_active(ext.mouse_cursor_follows_active_window());
     app.mouse_cursor_follows_active_window.connect('state-set', (_widget: any, state: boolean) => {
         ext.set_mouse_cursor_follows_active_window(state);
