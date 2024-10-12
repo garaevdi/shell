@@ -14,10 +14,8 @@ interface AppWidgets {
     inner_gap: any;
     mouse_cursor_follows_active_window: any;
     outer_gap: any;
-    show_skip_taskbar: any;
     smart_gaps: any;
     snap_to_grid: any;
-    window_titles: any;
     mouse_cursor_focus_position: any;
     log_level: any;
 }
@@ -37,12 +35,6 @@ function settings_dialog_new(): Gtk.Grid {
     let [app, grid] = settings_dialog_view();
 
     let ext = new settings.ExtensionSettings();
-
-    app.window_titles.set_active(ext.show_title());
-    app.window_titles.connect('state-set', (_widget: any, state: boolean) => {
-        ext.set_show_title(state);
-        Settings.sync();
-    });
 
     app.snap_to_grid.set_active(ext.snap_to_grid());
     app.snap_to_grid.connect('state-set', (_widget: any, state: boolean) => {
@@ -117,12 +109,6 @@ function settings_dialog_view(): [AppWidgets, Gtk.Grid] {
         margin_top: 10,
     });
 
-    const win_label = new Gtk.Label({
-        label: 'Show Window Titles',
-        xalign: 0.0,
-        hexpand: true,
-    });
-
     const snap_label = new Gtk.Label({
         label: 'Snap to Grid (Floating Mode)',
         xalign: 0.0,
@@ -130,11 +116,6 @@ function settings_dialog_view(): [AppWidgets, Gtk.Grid] {
 
     const smart_label = new Gtk.Label({
         label: 'Smart Gaps',
-        xalign: 0.0,
-    });
-
-    const show_skip_taskbar_label = new Gtk.Label({
-        label: 'Show Minimize to Tray Windows',
         xalign: 0.0,
     });
 
@@ -169,9 +150,6 @@ function settings_dialog_view(): [AppWidgets, Gtk.Grid] {
         log_level: build_combo(grid, 8, log.LOG_LEVELS, 'Log Level'),
     };
 
-    grid.attach(win_label, 0, 0, 1, 1);
-    grid.attach(settings.window_titles, 1, 0, 1, 1);
-
     grid.attach(snap_label, 0, 1, 1, 1);
     grid.attach(settings.snap_to_grid, 1, 1, 1, 1);
 
@@ -183,9 +161,6 @@ function settings_dialog_view(): [AppWidgets, Gtk.Grid] {
 
     grid.attach(stacking_with_mouse, 0, 4, 1, 1);
     grid.attach(settings.stacking_with_mouse, 1, 4, 1, 1);
-
-    grid.attach(show_skip_taskbar_label, 0, 5, 1, 1);
-    grid.attach(settings.show_skip_taskbar, 1, 5, 1, 1);
 
     grid.attach(mouse_cursor_follows_active_window_label, 0, 6, 1, 1);
     grid.attach(settings.mouse_cursor_follows_active_window, 1, 6, 1, 1);

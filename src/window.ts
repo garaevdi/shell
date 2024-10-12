@@ -104,16 +104,6 @@ export class ShellWindow {
             ext.add_tag(entity, Tags.Floating);
         }
 
-        if (this.may_decorate()) {
-            if (!window.decorated) {
-                if (ext.settings.show_title()) {
-                    this.decoration_show(ext);
-                } else {
-                    this.decoration_hide(ext);
-                }
-            }
-        }
-
         this.bind_window_events();
         this.bind_hint_events();
 

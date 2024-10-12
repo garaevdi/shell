@@ -60,7 +60,6 @@ const FULLSCREEN_LAUNCHER = 'fullscreen-launcher';
 const GAP_INNER = 'gap-inner';
 const GAP_OUTER = 'gap-outer';
 const ROW_SIZE = 'row-size';
-const SHOW_TITLE = 'show-title';
 const SMART_GAPS = 'smart-gaps';
 const SNAP_TO_GRID = 'snap-to-grid';
 const TILE_BY_DEFAULT = 'tile-by-default';
@@ -138,10 +137,6 @@ export class ExtensionSettings {
         return this.ext.get_uint(ROW_SIZE);
     }
 
-    show_title(): boolean {
-        return this.ext.get_boolean(SHOW_TITLE);
-    }
-
     smart_gaps(): boolean {
         return this.ext.get_boolean(SMART_GAPS);
     }
@@ -216,10 +211,6 @@ export class ExtensionSettings {
 
     set_row_size(size: number) {
         this.ext.set_uint(ROW_SIZE, size);
-    }
-
-    set_show_title(set: boolean) {
-        this.ext.set_boolean(SHOW_TITLE, set);
     }
 
     set_smart_gaps(set: boolean) {
