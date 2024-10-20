@@ -379,7 +379,12 @@ export class Stack {
         const window = this.ext.windows.get(c.entity);
         if (window) {
             for (const s of c.signals) window.meta.disconnect(s);
-            if (this.workspace === this.ext.active_workspace()) (window.meta.get_compositor_private() as Meta.WindowActor).show();
+            if (this.workspace === this.ext.active_workspace()) {
+                const wina = window.meta.get_compositor_private() as Meta.WindowActor;
+                if (wina) {
+                    wina.show();
+                }
+            };
         }
 
         c.signals = [];
@@ -416,7 +421,10 @@ export class Stack {
             if (this.workspace === this.ext.active_workspace()) {
                 const win = this.ext.windows.get(c.entity);
                 if (win) {
-                    (win.meta.get_compositor_private() as Meta.WindowActor).show();
+                    const wina = win.meta.get_compositor_private() as Meta.WindowActor;
+                    if (wina) {
+                        wina.show();
+                    }
                     win.stack = null;
                 }
             }
