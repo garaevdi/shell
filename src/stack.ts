@@ -38,7 +38,7 @@ function stack_widgets_new(): StackWidgets {
         x_expand: true,
     });
 
-    tabs.get_layout_manager()?.set_homogeneous(true);
+    (tabs.get_layout_manager() as Clutter.BoxLayout).set_homogeneous(true);
 
     return { tabs };
 }

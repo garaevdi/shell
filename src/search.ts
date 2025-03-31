@@ -35,7 +35,7 @@ export class Search {
     private list: St.Widget;
     private text: Clutter.Text;
     private widgets: Array<St.Widget>;
-    private scroller: St.Widget;
+    private scroller: St.ScrollView;
     private children_to_abandon: any = null;
     private last_trigger: number = 0;
 
@@ -375,13 +375,6 @@ export class Search {
         this.cleanup();
 
         this.list.show();
-
-        const vscroll = (this.scroller as any).get_vscroll_bar();
-        if ((this.scroller as any).vscrollbar_visible) {
-            vscroll.show();
-        } else {
-            vscroll.hide();
-        }
 
         if (id === 0) {
             GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
