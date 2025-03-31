@@ -1,3 +1,10 @@
+# What's different in this fork
+- Utilises npx, so you don't need to install typescript from your distro's repository
+- Instead of bundled and unmaintained type definitions for gnome-shell, uses [gnome-shell types](https://github.com/gjsify/gnome-shell) from [ts-for-gir](https://github.com/gjsify/ts-for-gir) project
+- Script for setting default keybindings uses `gsettings` instead of `dconf`
+- Default keybindings are changed to better suit my preference
+
+
 # Pop Shell
 
 Pop Shell is a keyboard-driven layer for GNOME Shell which allows for quick and sensible navigation and management of windows. The core feature of Pop Shell is the addition of advanced tiling window management — a feature that has been highly sought within our community. For many — ourselves included — i3wm has become the leading competitor to the GNOME desktop.
