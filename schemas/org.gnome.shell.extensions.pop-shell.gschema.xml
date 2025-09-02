@@ -258,6 +258,11 @@
             <summary>Move window to the rightward monitor</summary>
         </key>
 
+        <key type="b" name="hint-accent-color">
+            <default>false</default>
+            <summary>Use accent color as a hint color</summary>
+        </key>
+
         <key type="s" name="hint-color-rgba">
             <default>'rgba(251, 184, 108, 1)'</default>
             <summary>The current active-hint-color in RGBA</summary>

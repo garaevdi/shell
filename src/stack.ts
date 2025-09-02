@@ -338,14 +338,22 @@ export class Stack {
         let settings = this.ext.settings;
         let button = this.buttons.get(tab.button);
         if (button) {
-            let change_id = settings.ext.connect('changed', (_, key) => {
-                if (key === 'hint-color-rgba') {
+            let ext_id = settings.ext.connect('changed', (_, key) => {
+                if (key === 'hint-color-rgba' || key === 'hint-accent-color') {
                     this.change_tab_color(tab);
                 }
                 return false;
             });
+            let int_id = settings.int?.connect('changed', (_, key) => {
+                if (key === 'accent-color' && settings.hint_accent_color()) {
+                    this.change_tab_color(tab);
+                }
+            })
             button.connect('destroy', () => {
-                settings.ext.disconnect(change_id);
+                settings.ext.disconnect(ext_id);
+                if (int_id) {
+                    settings.int?.disconnect(int_id);
+                }
             });
         }
         this.change_tab_color(tab);
@@ -357,7 +365,12 @@ export class Stack {
         if (button) {
             let tab_color = '';
             if (Ecs.entity_eq(tab.entity, this.active)) {
-                let color_value = settings.hint_color_rgba();
+                let color_value: string;
+                if (settings.hint_accent_color()) {
+                    color_value = utils.get_accent_color();
+                } else {
+                    color_value = settings.hint_color_rgba();
+                }
                 tab_color = `background: ${color_value}; color: ${utils.is_dark(color_value) ? 'white' : 'black'}`;
             } else {
                 tab_color = `background: ${INACTIVE_TAB_STYLE}`;

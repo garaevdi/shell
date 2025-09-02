@@ -25,6 +25,7 @@ export class Indicator {
     toggle_titles: null | any;
     toggle_active: any;
     border_radius: any;
+    toggle_accent: any;
 
     entry_gaps: any;
 
@@ -78,6 +79,10 @@ export class Indicator {
             },
         );
 
+        this.toggle_accent = toggle(_!('Use Accent Color As a Hint'), ext.settings.hint_accent_color(), (toggle) => {
+            ext.settings.set_hint_accent_color(toggle.state);
+        });
+
         bm.addMenuItem(this.toggle_tiled);
         bm.addMenuItem(floating_window_exceptions(ext, bm));
 
@@ -90,6 +95,7 @@ export class Indicator {
         bm.addMenuItem(this.border_radius);
 
         // CSS Selector
+        bm.addMenuItem(this.toggle_accent);
         bm.addMenuItem(color_selector(ext, bm));
 
         bm.addMenuItem(this.entry_gaps);

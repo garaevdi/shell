@@ -184,3 +184,42 @@ export function os_release(): null | string {
 
     return null;
 }
+
+export function get_accent_color(): string {
+    let int_settings = Gio.Settings.new('org.gnome.desktop.interface');
+    let color_name = int_settings.get_string('accent-color');
+    let result = '';
+    switch (color_name) {
+        case 'blue':
+            result = '53, 132, 228'
+            break;
+        case 'teal':
+            result = '33, 144, 164'
+            break;
+        case 'green':
+            result = '58, 148, 74'
+            break;
+        case 'yellow':
+            result = '200, 136, 0'
+            break;
+        case 'orange':
+            result = '237, 91, 0'
+            break;
+        case 'red':
+            result = '230, 45, 66'
+            break;
+        case 'pink':
+            result = '213, 97, 153'
+            break;
+        case 'purple':
+            result = '145, 65, 172'
+            break;
+        case 'slate':
+            result = '111, 131, 150'
+            break;
+        default:
+            result = '53, 132, 228'
+            break;
+    }
+    return 'rgb('+result+')';
+}

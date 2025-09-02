@@ -63,6 +63,7 @@ const ROW_SIZE = 'row-size';
 const SMART_GAPS = 'smart-gaps';
 const SNAP_TO_GRID = 'snap-to-grid';
 const TILE_BY_DEFAULT = 'tile-by-default';
+const HINT_ACCENT_COLOR = 'hint-accent-color'
 const HINT_COLOR_RGBA = 'hint-color-rgba';
 const DEFAULT_RGBA_COLOR = 'rgba(251, 184, 108, 1)'; //pop-orange
 const LOG_LEVEL = 'log-level';
@@ -107,6 +108,10 @@ export class ExtensionSettings {
 
     gap_outer(): number {
         return this.ext.get_uint(GAP_OUTER);
+    }
+
+    hint_accent_color() {
+        return this.ext.get_boolean(HINT_ACCENT_COLOR);
     }
 
     hint_color_rgba() {
@@ -197,6 +202,10 @@ export class ExtensionSettings {
 
     set_gap_outer(gap: number) {
         this.ext.set_uint(GAP_OUTER, gap);
+    }
+
+    set_hint_accent_color(set: boolean) {
+        this.ext.set_boolean(HINT_ACCENT_COLOR, set);
     }
 
     set_hint_color_rgba(rgba: string) {
