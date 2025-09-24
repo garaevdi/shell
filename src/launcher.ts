@@ -13,6 +13,7 @@ import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import Gio from 'gi://Gio';
+import GioUnix from 'gi://GioUnix'
 import Shell from 'gi://Shell';
 import St from 'gi://St';
 
@@ -233,9 +234,9 @@ export class Launcher extends search.Search {
 
         if (!app) {
             log.error(`GNOME Shell cannot find desktop entry for ${desktop_entry_id}`);
-            log.error(`pop-launcher will use Gio.DesktopAppInfo instead`);
+            log.error(`pop-launcher will use GioUnix.DesktopAppInfo instead`);
 
-            const dapp = Gio.DesktopAppInfo.new_from_filename(entry.path);
+            const dapp = GioUnix.DesktopAppInfo.new_from_filename(entry.path);
 
             if (!dapp) {
                 log.error(`could not find desktop entry for ${entry.path}`);

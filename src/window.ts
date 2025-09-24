@@ -273,7 +273,7 @@ export class ShellWindow {
     }
 
     is_maximized(): boolean {
-        return this.meta.get_maximized() !== 0;
+        return this.meta.maximized_horizontally || this.meta.maximized_vertically;
     }
 
     /**
@@ -297,7 +297,7 @@ export class ShellWindow {
     }
 
     is_snap_edge(): boolean {
-        return this.meta.get_maximized() == Meta.MaximizeFlags.VERTICAL;
+        return this.meta.maximized_vertically && !this.meta.maximized_horizontally;
     }
 
     is_tilable(ext: Ext): boolean {
@@ -362,9 +362,9 @@ export class ShellWindow {
         const actor = meta.get_compositor_private() as Meta.WindowActor;
 
         if (actor) {
-            meta.unmaximize(Meta.MaximizeFlags.HORIZONTAL);
-            meta.unmaximize(Meta.MaximizeFlags.VERTICAL);
-            meta.unmaximize(Meta.MaximizeFlags.HORIZONTAL | Meta.MaximizeFlags.VERTICAL);
+			if (this.is_maximized()) {
+            	meta.unmaximize();
+			}
             actor.remove_all_transitions();
 
             ext.movements.insert(this.entity, clone);

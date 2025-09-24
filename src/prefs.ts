@@ -21,13 +21,14 @@ interface AppWidgets {
 }
 
 export default class PopShellPreferences extends ExtensionPreferences {
+	// @ts-ignore
     getPreferencesWidget() {
         globalThis.popShellExtension = this;
         let dialog = settings_dialog_new();
         dialog.show();
 
         log.debug(JSON.stringify(dialog));
-        return dialog;
+        return (dialog as Gtk.Widget);
     }
 }
 
